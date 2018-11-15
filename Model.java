@@ -101,7 +101,7 @@ public class Model {
 					entry[2] = entry[2].substring(4);
 				}
 
-				// Remove " "
+				// Remove "
 				if (temp4.equals(entry[2].substring(0, 1))){
 					entry[2] = entry[2].substring(1);
 				}

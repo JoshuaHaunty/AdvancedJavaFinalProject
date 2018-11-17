@@ -64,14 +64,17 @@ public class HomeUI extends Application {
 		transactionTable.setLayoutY(50);
 		transactionTable.setStyle("-fx-background-color: CAC9CC;");
 		transactionTable.setEditable(false);
+		transactionTable = model.displayData(model.ConnectToDb(), transactionTable);
+		model.autoResizeColumns(transactionTable);
 
 		// Add components to anchorPane
 		anchorPane.getChildren().addAll(vBox, transactionTable);
 
 		// Add anchorPane to scene and show it
 		primaryStage.setTitle(" Budget Tracker");
-		primaryStage.setScene(new Scene(anchorPane));
+		primaryStage.setScene(new Scene(anchorPane, 1112.0, 668.0));
 		primaryStage.show();
+		primaryStage.setResizable(false);
 
 		importButton.setOnMouseReleased(e -> {
 			try {

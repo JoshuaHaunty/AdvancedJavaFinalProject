@@ -133,6 +133,7 @@ public class Model {
 		System.out.println("Queries Sent");
 	}
 
+	// Display the data in the table by getting each tuple in the database. Code built off of Narayan G. Maharjan's version.
 	public TableView displayData(Connection connection, TableView tableView) throws Exception {
 
 		String SQL = "SELECT * FROM finalproject";

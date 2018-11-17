@@ -1,0 +1,15 @@
+.import {
+    -fx-background-color: #CAC9CC;
+    -fx-border-radius: 0;
+    -fx-text-fill: blue;
+}
+
+.trends {
+    -fx-background-color: #BFBDC1;
+    -fx-border-radius: 0;
+}
+
+.transaction {
+    -fx-background-color: #AEACB0;
+    -fx-border-radius: 0;
+}

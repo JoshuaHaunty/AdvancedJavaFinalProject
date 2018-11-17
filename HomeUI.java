@@ -1,48 +1,76 @@
 import javafx.geometry.Pos;
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 public class HomeUI extends Application {
-	private Button importButton = new Button();
-	private Button trendButton = new Button();
-	private Button transactionButton = new Button();
 	private TableView transactionTable = new TableView();
+	private Button importButton = new Button("Import");
+	private Button trendButton = new Button("Trends");
+	private Button transactionButton = new Button("Transactions");
+
+	public static void main(String[] args){
+		launch(args);
+	}
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		// Import the model
+		// Create a Model object
 		Model model = new Model();
-		// Set the text of defined fields
-		primaryStage.setTitle(" Budget Tracker");
-		importButton.setText("Import");
-		trendButton.setText("Trends");
-		transactionButton.setText("Transactions");
 
+		// Create Anchor pane
+		AnchorPane anchorPane = new AnchorPane();
+		anchorPane.setPrefHeight(668.0);
+		anchorPane.setPrefWidth(1112.0);
+		anchorPane.setStyle("-fx-background-color: #545e75");
+
+		// VBox to hold all buttons
+		VBox vBox = new VBox();
+		vBox.setPrefWidth(195);
+		vBox.setPrefHeight(668);
+		vBox.prefHeight(668);
+		vBox.prefWidth(203);
+		vBox.setStyle("-fx-background-color: #82a0bc");
+		vBox.setLayoutX(0);
+		vBox.setLayoutY(0);
+		vBox.setAlignment(Pos.CENTER);
+
+		// importButton settings
+		importButton.setMnemonicParsing(false);
+		importButton.setPrefWidth(300);
+		importButton.setPrefHeight(80);
+		importButton.setStyle("-fx-background-color: #CAC9CC; -fx-background-radius: 0;");
+
+		// trendButton settings
+		trendButton.setPrefWidth(300);
+		trendButton.setPrefHeight(80);
+		trendButton.setStyle("-fx-background-color: #BFBDC1; -fx-background-radius: 0");
+
+		// transactionButton settings
+		transactionButton.setPrefWidth(300);
+		transactionButton.setPrefHeight(80);
+		transactionButton.setStyle("-fx-background-color: #aeacb0; -fx-background-radius: 0");
+
+		// Add buttons to the vBox
+		vBox.getChildren().addAll(importButton, trendButton, transactionButton);
+
+		// TableView settings
+		transactionTable.setPrefHeight(568);
+		transactionTable.setPrefWidth(694);
+		transactionTable.setLayoutX(247);
+		transactionTable.setLayoutY(50);
+		transactionTable.setStyle("-fx-background-color: CAC9CC;");
 		transactionTable.setEditable(false);
 
-		transactionTable = model.displayData(model.ConnectToDb(), transactionTable);
-		model.autoResizeColumns(transactionTable);
+		// Add components to anchorPane
+		anchorPane.getChildren().addAll(vBox, transactionTable);
 
-		final HBox transactionHBox = new HBox();
-		transactionHBox.setSpacing(5);
-		transactionHBox.setPadding(new Insets(10, 0, 0, 10));
-		transactionHBox.getChildren().addAll(transactionTable);
-
-		VBox buttonVBox = new VBox();
-		buttonVBox.getChildren().addAll(importButton, trendButton, transactionButton);
-		buttonVBox.setAlignment(Pos.CENTER);
-
-		HBox stageHBox = new HBox();
-		stageHBox.getChildren().addAll(buttonVBox, transactionHBox);
-		stageHBox.setAlignment(Pos.CENTER);
-
-		primaryStage.setScene(new Scene(stageHBox, 500, 350));
+		// Add anchorPane to scene and show it
+		primaryStage.setTitle(" Budget Tracker");
+		primaryStage.setScene(new Scene(anchorPane));
 		primaryStage.show();
 
 		importButton.setOnMouseReleased(e -> {

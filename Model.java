@@ -133,6 +133,25 @@ public class Model {
 		System.out.println("Queries Sent");
 	}
 
+	public boolean hasData() throws Exception {
+		String SQL = "SELECT * FROM finalproject";
+		boolean returnStatement = false;
+
+		try {
+			Connection connection = DriverManager.getConnection(url, user, pswd);
+			ResultSet rs = connection.createStatement().executeQuery(SQL);
+
+			if (rs.next() == false){
+				returnStatement = false;
+			} else {
+				returnStatement = true;
+			}
+		} catch (Exception ex){
+			System.err.print(ex);
+		}
+		return returnStatement;
+	}
+
 	// Display the data in the table by getting each tuple in the database. Code built off of Narayan G. Maharjan's version.
 	public TableView displayData(Connection connection, TableView tableView) throws Exception {
 

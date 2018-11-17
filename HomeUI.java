@@ -64,15 +64,20 @@ public class HomeUI extends Application {
 		transactionTable.setLayoutY(50);
 		transactionTable.setStyle("-fx-background-color: CAC9CC;");
 		transactionTable.setEditable(false);
-		transactionTable = model.displayData(model.ConnectToDb(), transactionTable);
-		model.autoResizeColumns(transactionTable);
+
+		// If there is data in the database, display it
+		boolean hasData = model.hasData();
+
+		if (hasData == true) {
+			model.autoResizeColumns(model.displayData(model.ConnectToDb(), transactionTable));
+		}
 
 		// Add components to anchorPane
 		anchorPane.getChildren().addAll(vBox, transactionTable);
 
 		// Add anchorPane to scene and show it
 		primaryStage.setTitle(" Budget Tracker");
-		primaryStage.setScene(new Scene(anchorPane, 1112.0, 668.0));
+		primaryStage.setScene(new Scene(anchorPane, 1112.0, 648.0));
 		primaryStage.show();
 		primaryStage.setResizable(false);
 

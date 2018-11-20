@@ -59,7 +59,7 @@ public class HomeUI extends Application {
 
 		// TableView settings
 		transactionTable.setPrefHeight(568);
-		transactionTable.setPrefWidth(694);
+		transactionTable.setPrefWidth(844);
 		transactionTable.setLayoutX(247);
 		transactionTable.setLayoutY(50);
 		transactionTable.setStyle("-fx-background-color: CAC9CC;");
@@ -69,7 +69,8 @@ public class HomeUI extends Application {
 		boolean hasData = model.hasData();
 
 		if (hasData == true) {
-			model.autoResizeColumns(model.displayData(model.ConnectToDb(), transactionTable));
+			model.autoResizeColumns(model.addComboBoxToTableView(
+					model.displayData(model.ConnectToDb(), transactionTable)));
 		}
 
 		// Add components to anchorPane
@@ -85,7 +86,8 @@ public class HomeUI extends Application {
 			try {
 				model.ImportFile();
 				model.importData(model.ConnectToDb());
-				model.autoResizeColumns(model.displayData(model.ConnectToDb(), transactionTable));
+				model.autoResizeColumns(model.addComboBoxToTableView(
+						model.displayData(model.ConnectToDb(), transactionTable)));
 			} catch (Exception ex) {
 				System.err.print(ex);
 			}

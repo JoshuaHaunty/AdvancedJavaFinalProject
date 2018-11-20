@@ -1,10 +1,14 @@
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TableColumn;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.TableView;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import java.io.BufferedReader;
@@ -16,7 +20,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import javafx.util.Callback;
+import javafx.util.converter.DefaultStringConverter;
 
 public class Model {
 	private static List<String[]> transactionList = new ArrayList<>();
@@ -24,6 +31,10 @@ public class Model {
 	private static String pswd = "";
 	private static String url = "jdbc:mysql://localhost/AdvancedDBFinal";
 	private ObservableList<ObservableList> data;
+	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList(
+			"Select...", "Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
+	);
+	private TableColumn tableColumn = new TableColumn("Category");
 
 	public void ImportFile() throws Exception {
 		FileChooser csvFileChooser = new FileChooser();
@@ -164,11 +175,8 @@ public class Model {
 			for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
 				final int j = i;
 				TableColumn column = new TableColumn(rs.getMetaData().getColumnName(i + 1));
-				column.setCellValueFactory(new Callback<CellDataFeatures<ObservableList, String>, ObservableValue<String>>() {
-					public ObservableValue<String> call(TableColumn.CellDataFeatures<ObservableList, String> param) {
-						return new SimpleStringProperty(param.getValue().get(j).toString());
-					}
-				});
+				column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
+						ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(j).toString()));
 				tableView.getColumns().addAll(column);
 			}
 
@@ -187,7 +195,7 @@ public class Model {
 		return tableView;
 	}
 
-	public void autoResizeColumns(TableView<?> table) {
+	public TableView autoResizeColumns(TableView<?> table) {
 		table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 		table.getColumns().stream().forEach((column) -> {
 			Text t = new Text(column.getText());
@@ -203,5 +211,40 @@ public class Model {
 			}
 			column.setPrefWidth(max + 30.0d);
 		});
+		return table;
+	}
+
+	public void updateComboBox(){
+
+
+    }
+
+    public TableView addComboBoxToTableView(TableView tableView){
+
+		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
+		column.setCellValueFactory(new PropertyValueFactory<>("category"));
+
+		column.setCellFactory(col -> {
+			TableCell<String, StringProperty> c = new TableCell<>();
+			final ComboBox<String> comboBox = new ComboBox<>(comboBoxValues);
+			c.itemProperty().addListener((observable, oldValue, newValue) -> {
+				if (oldValue != null) {
+					comboBox.valueProperty().unbindBidirectional(oldValue);
+				}
+				if (newValue != null) {
+					comboBox.valueProperty().bindBidirectional(newValue);
+				}
+			});
+			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(comboBox));
+			comboBox.getSelectionModel().selectFirst();
+			return c;
+
+		});
+
+		tableView.getColumns().add(column);
+		tableView.setEditable(true);
+
+    	return tableView;
 	}
 }
+

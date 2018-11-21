@@ -2,6 +2,7 @@ import javafx.geometry.Pos;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -59,11 +60,12 @@ public class HomeUI extends Application {
 
 		// TableView settings
 		transactionTable.setPrefHeight(568);
-		transactionTable.setPrefWidth(844);
+		transactionTable.setPrefWidth(800);
 		transactionTable.setLayoutX(247);
 		transactionTable.setLayoutY(50);
 		transactionTable.setStyle("-fx-background-color: CAC9CC;");
-		transactionTable.setEditable(false);
+		//transactionTable.setEditable(false);
+		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
 
 		// If there is data in the database, display it
 		boolean hasData = model.hasData();
@@ -73,12 +75,15 @@ public class HomeUI extends Application {
 					model.displayData(model.ConnectToDb(), transactionTable)));
 		}
 
+		transactionTable.setEditable(false);
+
+
 		// Add components to anchorPane
 		anchorPane.getChildren().addAll(vBox, transactionTable);
 
 		// Add anchorPane to scene and show it
 		primaryStage.setTitle(" Budget Tracker");
-		primaryStage.setScene(new Scene(anchorPane, 1112.0, 648.0));
+		primaryStage.setScene(new Scene(anchorPane, 1212.0, 648.0));
 		primaryStage.show();
 		primaryStage.setResizable(false);
 

@@ -26,15 +26,14 @@ import javafx.util.Callback;
 import javafx.util.converter.DefaultStringConverter;
 
 public class Model {
-	private static List<String[]> transactionList = new ArrayList<>();
-	private static String user = "root";
-	private static String pswd = "";
-	private static String url = "jdbc:mysql://localhost/AdvancedDBFinal";
+	private List<String[]> transactionList = new ArrayList<>();
+	private String user = "root";
+	private String pswd = "";
+	private String url = "jdbc:mysql://localhost/AdvancedDBFinal";
 	private ObservableList<ObservableList> data;
 	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList(
-			"Select...", "Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
+			"Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
 	);
-	private TableColumn tableColumn = new TableColumn("Category");
 
 	public void ImportFile() throws Exception {
 		FileChooser csvFileChooser = new FileChooser();
@@ -209,7 +208,11 @@ public class Model {
 					}
 				}
 			}
-			column.setPrefWidth(max + 30.0d);
+			if (column.getText().equals("Category")){
+				column.setPrefWidth(max + 60.0d);
+			} else {
+				column.setPrefWidth(max + 30.0d);
+			}
 		});
 		return table;
 	}
@@ -236,13 +239,12 @@ public class Model {
 				}
 			});
 			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(comboBox));
-			comboBox.getSelectionModel().selectFirst();
+			comboBox.setValue("Select...");
 			return c;
 
 		});
-
 		tableView.getColumns().add(column);
-		tableView.setEditable(true);
+		//tableView.setEditable(true);
 
     	return tableView;
 	}

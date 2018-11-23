@@ -1,6 +1,7 @@
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,10 +15,7 @@ import javafx.stage.FileChooser;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +169,7 @@ public class Model {
 		try {
 			ResultSet rs = connection.createStatement().executeQuery(SQL);
 
-			for (int i = 0; i < rs.getMetaData().getColumnCount(); i++) {
+			for (int i = 0; i < rs.getMetaData().getColumnCount() - 1; i++) {
 				final int j = i;
 				TableColumn column = new TableColumn(rs.getMetaData().getColumnName(i + 1));
 				column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
@@ -227,24 +225,56 @@ public class Model {
 		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
 		column.setCellValueFactory(new PropertyValueFactory<>("category"));
 
+		final int row;
 		column.setCellFactory(col -> {
 			TableCell<String, StringProperty> c = new TableCell<>();
 			final ComboBox<String> comboBox = new ComboBox<>(comboBoxValues);
 			c.itemProperty().addListener((observable, oldValue, newValue) -> {
-				if (oldValue != null) {
-					comboBox.valueProperty().unbindBidirectional(oldValue);
-				}
-				if (newValue != null) {
-					comboBox.valueProperty().bindBidirectional(newValue);
+                if (oldValue != null) {
+                    comboBox.valueProperty().unbindBidirectional(oldValue);
+                }
+                if (newValue != null) {
+                    comboBox.valueProperty().bindBidirectional(newValue);
+                }
+            });
+			comboBox.valueProperty().addListener(new ChangeListener<String>(){
+				@Override
+				public void changed(ObservableValue observable, String oldValue, String newValue) {
+					if (comboBox.getValue() != "Select...") {
+						String row = tableView.getItems().get(c.getIndex()).toString();
+						int length = row.indexOf(',');
+						String rowNumber = "";
+
+						for (int i = 1; i < length; i++){
+							rowNumber += row.charAt(i);
+						}
+
+						String query = "UPDATE advanceddbfinal.finalproject SET Category = ? WHERE ID = ?";
+
+						try {
+							Connection connection = ConnectToDb();
+							PreparedStatement statement = connection.prepareStatement(query);
+
+							statement.setString(1, comboBox.getValue());
+							statement.setString(2, rowNumber);
+							statement.executeUpdate();
+
+							System.out.print("Category updated for transaction: " + rowNumber);
+
+						} catch (Exception ex) {
+							System.err.println(ex);
+						}
+					}
 				}
 			});
+
 			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(comboBox));
 			comboBox.setValue("Select...");
 			return c;
 
 		});
 		tableView.getColumns().add(column);
-		//tableView.setEditable(true);
+		tableView.setEditable(true);
 
     	return tableView;
 	}

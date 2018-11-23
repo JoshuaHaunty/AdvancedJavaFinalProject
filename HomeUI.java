@@ -4,6 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -12,6 +13,7 @@ public class HomeUI extends Application {
 	private Button importButton = new Button("Import");
 	private Button trendButton = new Button("Trends");
 	private Button transactionButton = new Button("Transactions");
+	private TextField newCategoryTextField = new TextField("Category: ");
 
 	public static void main(String[] args){
 		launch(args);
@@ -74,8 +76,6 @@ public class HomeUI extends Application {
 			model.autoResizeColumns(model.addComboBoxToTableView(
 					model.displayData(model.ConnectToDb(), transactionTable)));
 		}
-
-		transactionTable.setEditable(false);
 
 
 		// Add components to anchorPane

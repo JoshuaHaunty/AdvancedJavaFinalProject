@@ -163,7 +163,7 @@ public class Model {
 	// Display the data in the table by getting each tuple in the database. Code built off of Narayan G. Maharjan's version.
 	public TableView displayData(Connection connection, TableView tableView) throws Exception {
 
-		String SQL = "SELECT * FROM finalproject";
+		String SQL = "SELECT * FROM finalproject WHERE Category = 'Select...'";
 		data = FXCollections.observableArrayList();
 
 		try {
@@ -225,48 +225,38 @@ public class Model {
 		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
 		column.setCellValueFactory(new PropertyValueFactory<>("category"));
 
-		final int row;
 		column.setCellFactory(col -> {
 			TableCell<String, StringProperty> c = new TableCell<>();
 			final ComboBox<String> comboBox = new ComboBox<>(comboBoxValues);
-			c.itemProperty().addListener((observable, oldValue, newValue) -> {
-                if (oldValue != null) {
-                    comboBox.valueProperty().unbindBidirectional(oldValue);
-                }
-                if (newValue != null) {
-                    comboBox.valueProperty().bindBidirectional(newValue);
-                }
-            });
-			comboBox.valueProperty().addListener(new ChangeListener<String>(){
-				@Override
-				public void changed(ObservableValue observable, String oldValue, String newValue) {
-					if (comboBox.getValue() != "Select...") {
-						String row = tableView.getItems().get(c.getIndex()).toString();
-						int length = row.indexOf(',');
-						String rowNumber = "";
+			comboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+                if (comboBox.getValue() != "Select...") {
+					Object rowObject = tableView.getItems().get(c.getIndex());
+					String row = rowObject.toString();
+					int length = row.indexOf(',');
+					String rowNumber = "";
 
-						for (int i = 1; i < length; i++){
-							rowNumber += row.charAt(i);
-						}
+					for (int i = 1; i < length; i++) {
+						rowNumber += row.charAt(i);
+					}
 
-						String query = "UPDATE advanceddbfinal.finalproject SET Category = ? WHERE ID = ?";
+					String query = "UPDATE finalproject SET Category = ? WHERE ID = ?";
 
-						try {
-							Connection connection = ConnectToDb();
-							PreparedStatement statement = connection.prepareStatement(query);
+					try {
+						Connection connection = ConnectToDb();
+						PreparedStatement statement = connection.prepareStatement(query);
 
-							statement.setString(1, comboBox.getValue());
-							statement.setString(2, rowNumber);
-							statement.executeUpdate();
+						statement.setString(1, comboBox.getValue());
+						statement.setString(2, rowNumber);
+						statement.executeUpdate();
 
-							System.out.print("Category updated for transaction: " + rowNumber);
-
-						} catch (Exception ex) {
-							System.err.println(ex);
-						}
+						System.out.println("Row " + rowNumber + " updated");
+						tableView.getItems().remove(rowObject);
+						comboBox.setValue("Select...");
+					} catch (Exception ex) {
+						System.err.println(ex);
 					}
 				}
-			});
+            });
 
 			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(comboBox));
 			comboBox.setValue("Select...");

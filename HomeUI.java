@@ -99,13 +99,13 @@ public class HomeUI extends Application {
 		});
 
 		trendButton.setOnMouseReleased(e -> {
-			Stage stage = new Stage();
-			TransactionUI transactionUI = new TransactionUI();
-			try {
-				transactionUI.start(stage);
-			} catch (Exception ex) {
-				System.err.print(ex);
-			}
+			transactionTable.setVisible(false);
+
+		});
+
+		transactionButton.setOnMouseReleased(e -> {
+			transactionTable.setVisible(true);
+
 		});
 	}
 }

@@ -69,6 +69,7 @@ public class HomeUI extends Application {
 		//transactionTable.setEditable(false);
 		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
 
+
 		// If there is data in the database, display it
 		boolean hasData = model.hasData();
 

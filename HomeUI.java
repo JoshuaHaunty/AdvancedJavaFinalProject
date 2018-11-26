@@ -1,6 +1,10 @@
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -8,12 +12,19 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import static javafx.geometry.Side.BOTTOM;
+import static javafx.geometry.Side.LEFT;
+
 public class HomeUI extends Application {
 	private TableView transactionTable = new TableView();
 	private Button importButton = new Button("Import");
 	private Button trendButton = new Button("Trends");
 	private Button transactionButton = new Button("Transactions");
 	private TextField newCategoryTextField = new TextField("Category: ");
+	private final CategoryAxis categoryAxis = new CategoryAxis();
+	private final NumberAxis numberAxis = new NumberAxis();
+	private BarChart<String, Number> barChart = new BarChart<>(categoryAxis, numberAxis);
+	private TableView categoryTable = new TableView();
 
 	public static void main(String[] args){
 		launch(args);
@@ -65,10 +76,30 @@ public class HomeUI extends Application {
 		transactionTable.setPrefWidth(800);
 		transactionTable.setLayoutX(247);
 		transactionTable.setLayoutY(50);
-		transactionTable.setStyle("-fx-background-color: CAC9CC;");
-		//transactionTable.setEditable(false);
 		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
+		transactionTable.setEditable(false);
 
+
+		// HBox to hold graph and category tableview
+		HBox hBox = new HBox();
+		hBox.setLayoutX(203.0);
+		hBox.setPrefWidth(905.0);
+		hBox.setPrefHeight(660.0);
+
+		// BarChart to display categories
+		categoryAxis.setSide(BOTTOM);
+		numberAxis.setSide(LEFT);
+		barChart.setPrefHeight(460.0);
+		barChart.setPrefWidth(561.0);
+		barChart.setPadding(new Insets(150, 100, 100,50 ));
+		barChart.setStyle("-fx-background-color: #63adf2");
+		barChart.setTitle("Category Comparison Graph");
+
+		// TableView for displaying categories and the totals
+		categoryTable.setPrefHeight(496.0);
+		categoryTable.setPrefWidth(497.0);
+		categoryTable.setPadding(new Insets(75.0, 75.0, 75.0, 0));
+		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions to view category totals"));
 
 		// If there is data in the database, display it
 		boolean hasData = model.hasData();

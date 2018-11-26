@@ -192,6 +192,38 @@ public class Model {
 		return tableView;
 	}
 
+	public TableView displayCategoryData(Connection connection, TableView tableView) throws Exception {
+		String SQLCategory =
+				"SELECT " +
+					"Category," +
+					"SUM(CASE WHEN Category = ? THEN 1 ELSE 0 END) AS 'Transactions'," +
+					"SUM(AMOUNT) AS 'Total' " +
+				"FROM finalproject " +
+				"WHERE Category = ''";
+
+		int count = 0;
+		PreparedStatement statement;
+		ResultSet rs = connection.createStatement().executeQuery(SQLCategory);
+
+		try {
+			TableColumn column = new TableColumn(rs.getMetaData().getColumnName(1));
+			data = FXCollections.observableArrayList();
+			column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
+					ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(1).toString()));
+			while (rs.next()) {
+				count++;
+				ObservableList<String> row = FXCollections.observableArrayList();
+				row.add(rs.getString(1));
+				data.add(row);
+			}
+			tableView.setItems(data);
+		} catch (Exception ex){
+			System.err.print(ex);
+		}
+
+		return tableView;
+	}
+
 	public TableView autoResizeColumns(TableView<?> table) {
 		table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 		table.getColumns().stream().forEach((column) -> {
@@ -215,11 +247,6 @@ public class Model {
 		return table;
 	}
 
-	public void updateComboBox(){
-
-
-    }
-
     public TableView addComboBoxToTableView(TableView tableView){
 
 		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
@@ -241,6 +268,7 @@ public class Model {
 
 					String query = "UPDATE finalproject SET Category = ? WHERE ID = ?";
 
+
 					try {
 						Connection connection = ConnectToDb();
 						PreparedStatement statement = connection.prepareStatement(query);
@@ -250,12 +278,12 @@ public class Model {
 						statement.executeUpdate();
 
 						System.out.println("Row " + rowNumber + " updated");
-						tableView.getItems().remove(rowObject);
-						comboBox.setValue("Select...");
-					} catch (Exception ex) {
-						System.err.println(ex);
+					} catch (Exception ignore) {
+						System.err.println(ignore);
 					}
+					tableView.getItems().remove(rowObject);
 				}
+				tableView.refresh();
             });
 
 			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(comboBox));

@@ -1,3 +1,5 @@
+import javafx.beans.binding.Bindings;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.application.Application;
@@ -17,6 +19,7 @@ import static javafx.geometry.Side.LEFT;
 
 public class HomeUI extends Application {
 	private TableView transactionTable = new TableView();
+	private TableView categoryTable = new TableView();
 	private Button importButton = new Button("Import");
 	private Button trendButton = new Button("Trends");
 	private Button transactionButton = new Button("Transactions");
@@ -24,7 +27,6 @@ public class HomeUI extends Application {
 	private final CategoryAxis categoryAxis = new CategoryAxis();
 	private final NumberAxis numberAxis = new NumberAxis();
 	private BarChart<String, Number> barChart = new BarChart<>(categoryAxis, numberAxis);
-	private TableView categoryTable = new TableView();
 
 	public static void main(String[] args){
 		launch(args);
@@ -96,7 +98,7 @@ public class HomeUI extends Application {
 		barChart.setTitle("Category Comparison Graph");
 
 		// TableView for displaying categories and the totals
-		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions to view category totals"));
+		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions"));
 		categoryTable.setPrefHeight(496.0);
 		categoryTable.setPrefWidth(497.0);
 
@@ -104,12 +106,10 @@ public class HomeUI extends Application {
 
 		hBox.getChildren().addAll(barChart, categoryTable);
 		hBox.setMargin(barChart, new Insets(150, 100, 100,50 ));
-		hBox.setMargin(categoryTable, new Insets(75.0, 75.0, 75.0, 0));
+		hBox.setMargin(categoryTable, new Insets(75.0, 50.0, 75.0, 0));
 
 		// If there is data in the database, display it
-		boolean hasData = model.hasData();
-
-		if (hasData == true) {
+		if (model.hasData(model.ConnectToDb()) == true) {
 			model.autoResizeColumns(model.addComboBoxToTableView(
 					model.displayData(model.ConnectToDb(), transactionTable)));
 		}
@@ -137,11 +137,10 @@ public class HomeUI extends Application {
 
 		trendButton.setOnMouseReleased(e -> {
 			try {
-				transactionTable.setVisible(false);
-				if (hasData == true) {
-					model.autoResizeColumns(model.displayCategoryData(model.ConnectToDb(), categoryTable));
-					transactionTable.setVisible(false);
+				if (model.hasData(model.ConnectToDb()) == true && hBox.isVisible() == false) {
+					model.autoResizeColumns(model.displayCategoryData(model.ConnectToDb(), categoryTable, model.getCategories(model.ConnectToDb())));
 				}
+				transactionTable.setVisible(false);
 				hBox.setVisible(true);
 			} catch (Exception ex){
 				System.err.print(ex);
@@ -150,10 +149,10 @@ public class HomeUI extends Application {
 
 		transactionButton.setOnMouseReleased(e -> {
 			try {
-				if (hasData == true) {
+				if (model.hasData(model.ConnectToDb()) == true && transactionTable.isVisible() == false) {
 					model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
-					hBox.setVisible(false);
 				}
+				hBox.setVisible(false);
 				transactionTable.setVisible(true);
 			} catch (Exception ex){
 				System.err.print(ex);

@@ -142,12 +142,12 @@ public class Model {
 		System.out.println("Queries Sent");
 	}
 
-	public boolean hasData() throws Exception {
+	public boolean hasData(Connection connection) throws Exception {
 		String SQL = "SELECT * FROM finalproject";
 		boolean returnStatement = false;
 
 		try {
-			Connection connection = DriverManager.getConnection(url, user, pswd);
+			connection = DriverManager.getConnection(url, user, pswd);
 			ResultSet rs = connection.createStatement().executeQuery(SQL);
 
 			if (rs.next() == false){
@@ -158,11 +158,14 @@ public class Model {
 		} catch (Exception ex){
 			System.err.print(ex);
 		}
+		System.out.println("The database has data: " + returnStatement);
 		return returnStatement;
 	}
 
 	// Display the data in the table by getting each tuple in the database. Code built off of Narayan G. Maharjan's version.
 	public TableView displayData(Connection connection, TableView tableView) throws Exception {
+		tableView.getItems().clear();
+		tableView.getColumns().clear();
 
 		String SQL = "SELECT * FROM finalproject WHERE Category = 'Select...'";
 		data = FXCollections.observableArrayList();
@@ -193,7 +196,30 @@ public class Model {
 		return tableView;
 	}
 
-	public TableView displayCategoryData(Connection connection, TableView tableView) throws Exception {
+	public ObservableList<String> getCategories(Connection connection){
+		ObservableList<String> categoriesInDatabase = FXCollections.observableArrayList();
+		String query = "SELECT DISTINCT(Category) FROM finalproject";
+		Statement statement;
+		try {
+			statement = connection.createStatement();
+			ResultSet rs = statement.executeQuery(query);
+
+			while (rs.next()){
+				if (!rs.getString("Category").equals("Select...")) {
+					categoriesInDatabase.add(rs.getString("Category"));
+				}
+			}
+
+		} catch (Exception ex){
+			System.err.println(ex);
+		}
+		System.out.println(categoriesInDatabase);
+		return categoriesInDatabase;
+	}
+
+	public TableView displayCategoryData(Connection connection, TableView tableView, ObservableList<String> categories) throws Exception {
+		tableView.getItems().clear();
+		tableView.getColumns().clear();
 		String SQLCategory =
 				"SELECT " +
 					"Category," +
@@ -202,41 +228,45 @@ public class Model {
 				"FROM finalproject " +
 				"WHERE Category = ?";
 		data2 = FXCollections.observableArrayList();
+		int size = categories.size();
+		if (size != 0) {
+			try {
+				for (int i = 0; i < size; i++) {
 
-		try {
-			for (int i = 0; i < comboBoxValues.size(); i++) {
+					PreparedStatement statement;
+					statement = connection.prepareStatement(SQLCategory);
+					statement.setString(1, categories.get(i));
+					statement.setString(2, categories.get(i));
 
-				PreparedStatement statement;
-				statement = connection.prepareStatement(SQLCategory);
-				statement.setString(1, comboBoxValues.get(i));
-				statement.setString(2, comboBoxValues.get(i));
+					ResultSet rs = statement.executeQuery();
 
-				ResultSet rs = statement.executeQuery();
-
-				if (i == comboBoxValues.size() - 1){
-					for (int k = 0; k < rs.getMetaData().getColumnCount(); k++) {
-						final int l = k;
-						TableColumn column = new TableColumn(rs.getMetaData().getColumnName(k + 1));
-						column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
-								ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(l).toString()));
-						tableView.getColumns().addAll(column);
+					if (i == categories.size() - 1) {
+						for (int k = 0; k < rs.getMetaData().getColumnCount(); k++) {
+							final int l = k;
+							TableColumn column = new TableColumn(rs.getMetaData().getColumnName(k + 1));
+							column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
+									ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(l).toString()));
+							if (column != null) {
+								tableView.getColumns().addAll(column);
+							}
+						}
 					}
-				}
 
-				while (rs.next()){
-					ObservableList<String> row2 = FXCollections.observableArrayList();
-					for (int j = 1; j <= rs.getMetaData().getColumnCount(); j++) {
-						row2.add(rs.getString(j));
+					while (rs.next()) {
+						ObservableList<String> row2 = FXCollections.observableArrayList();
+						for (int j = 1; j <= rs.getMetaData().getColumnCount(); j++) {
+							row2.add(rs.getString(j));
+						}
+						data2.add(row2);
 					}
-					data2.add(row2);
-				}
 
+				}
+				System.out.println(data2);
+				tableView.setItems(data2);
+
+			} catch (Exception ex) {
+				System.err.print(ex);
 			}
-			System.out.println(data2);
-			tableView.setItems(data2);
-
-		} catch (Exception ex){
-			System.err.print(ex);
 		}
 
 		return tableView;
@@ -263,6 +293,12 @@ public class Model {
 			}
 		});
 		return table;
+	}
+
+	public TableView addRadioButtonToTableView(TableView tableView){
+		TableCell<RadioButton, RadioButton> c = new TableCell<>();
+
+		return tableView;
 	}
 
     public TableView addComboBoxToTableView(TableView tableView){

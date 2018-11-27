@@ -91,15 +91,19 @@ public class HomeUI extends Application {
 		numberAxis.setSide(LEFT);
 		barChart.setPrefHeight(460.0);
 		barChart.setPrefWidth(561.0);
-		barChart.setPadding(new Insets(150, 100, 100,50 ));
+		//barChart.setPadding(new Insets(150, 100, 100,50 ));
 		barChart.setStyle("-fx-background-color: #63adf2");
 		barChart.setTitle("Category Comparison Graph");
 
 		// TableView for displaying categories and the totals
+		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions to view category totals"));
 		categoryTable.setPrefHeight(496.0);
 		categoryTable.setPrefWidth(497.0);
-		categoryTable.setPadding(new Insets(75.0, 75.0, 75.0, 0));
-		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions to view category totals"));
+		//categoryTable.setPadding(new Insets(75.0, 75.0, 75.0, 0));
+
+		hBox.getChildren().addAll(barChart, categoryTable);
+		hBox.setMargin(barChart, new Insets(150, 100, 100,50 ));
+		hBox.setMargin(categoryTable, new Insets(75.0, 75.0, 75.0, 0));
 
 		// If there is data in the database, display it
 		boolean hasData = model.hasData();
@@ -111,7 +115,8 @@ public class HomeUI extends Application {
 
 
 		// Add components to anchorPane
-		anchorPane.getChildren().addAll(vBox, transactionTable);
+		anchorPane.getChildren().addAll(vBox, transactionTable, hBox);
+		hBox.setVisible(false);
 
 		// Add anchorPane to scene and show it
 		primaryStage.setTitle(" Budget Tracker");
@@ -123,20 +128,35 @@ public class HomeUI extends Application {
 			try {
 				model.ImportFile();
 				model.importData(model.ConnectToDb());
-				model.autoResizeColumns(model.addComboBoxToTableView(
-						model.displayData(model.ConnectToDb(), transactionTable)));
+				model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
 			} catch (Exception ex) {
 				System.err.print(ex);
 			}
 		});
 
 		trendButton.setOnMouseReleased(e -> {
-			transactionTable.setVisible(false);
-
+			try {
+				transactionTable.setVisible(false);
+				if (hasData == true) {
+					model.autoResizeColumns(model.displayCategoryData(model.ConnectToDb(), categoryTable));
+					transactionTable.setVisible(false);
+				}
+				hBox.setVisible(true);
+			} catch (Exception ex){
+				System.err.print(ex);
+			}
 		});
 
 		transactionButton.setOnMouseReleased(e -> {
-			transactionTable.setVisible(true);
+			try {
+				if (hasData == true) {
+					model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
+					hBox.setVisible(false);
+				}
+				transactionTable.setVisible(true);
+			} catch (Exception ex){
+				System.err.print(ex);
+			}
 
 		});
 	}

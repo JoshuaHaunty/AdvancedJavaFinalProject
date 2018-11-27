@@ -29,6 +29,7 @@ public class Model {
 	private String pswd = "";
 	private String url = "jdbc:mysql://localhost/AdvancedDBFinal";
 	private ObservableList<ObservableList> data;
+	private ObservableList<ObservableList> data2;
 	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList(
 			"Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
 	);
@@ -199,24 +200,29 @@ public class Model {
 					"SUM(CASE WHEN Category = ? THEN 1 ELSE 0 END) AS 'Transactions'," +
 					"SUM(AMOUNT) AS 'Total' " +
 				"FROM finalproject " +
-				"WHERE Category = ''";
-
-		int count = 0;
-		PreparedStatement statement;
-		ResultSet rs = connection.createStatement().executeQuery(SQLCategory);
+				"WHERE Category = ?";
+		data2 = FXCollections.observableArrayList();
 
 		try {
-			TableColumn column = new TableColumn(rs.getMetaData().getColumnName(1));
-			data = FXCollections.observableArrayList();
-			column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
-					ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(1).toString()));
-			while (rs.next()) {
-				count++;
-				ObservableList<String> row = FXCollections.observableArrayList();
-				row.add(rs.getString(1));
-				data.add(row);
+			for (int i = 0; i < comboBoxValues.size(); i++) {
+				PreparedStatement statement;
+				statement = connection.prepareStatement(SQLCategory);
+				statement.setString(1, comboBoxValues.get(i));
+				statement.setString(2, comboBoxValues.get(i));
+
+				ResultSet rs = statement.executeQuery();
+
+				while (rs.next()){
+					ObservableList<String> row2 = FXCollections.observableArrayList();
+					for (int j = 1; j <= rs.getMetaData().getColumnCount(); j++) {
+						row2.add(rs.getString(j));
+					}
+					data2.add(row2);
+				}
+
 			}
-			tableView.setItems(data);
+			tableView.setItems(data2);
+
 		} catch (Exception ex){
 			System.err.print(ex);
 		}

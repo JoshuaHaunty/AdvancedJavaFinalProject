@@ -99,6 +99,7 @@ public class HomeUI extends Application {
 		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions to view category totals"));
 		categoryTable.setPrefHeight(496.0);
 		categoryTable.setPrefWidth(497.0);
+
 		//categoryTable.setPadding(new Insets(75.0, 75.0, 75.0, 0));
 
 		hBox.getChildren().addAll(barChart, categoryTable);

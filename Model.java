@@ -205,12 +205,23 @@ public class Model {
 
 		try {
 			for (int i = 0; i < comboBoxValues.size(); i++) {
+
 				PreparedStatement statement;
 				statement = connection.prepareStatement(SQLCategory);
 				statement.setString(1, comboBoxValues.get(i));
 				statement.setString(2, comboBoxValues.get(i));
 
 				ResultSet rs = statement.executeQuery();
+
+				if (i == comboBoxValues.size() - 1){
+					for (int k = 0; k < rs.getMetaData().getColumnCount(); k++) {
+						final int l = k;
+						TableColumn column = new TableColumn(rs.getMetaData().getColumnName(k + 1));
+						column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
+								ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(l).toString()));
+						tableView.getColumns().addAll(column);
+					}
+				}
 
 				while (rs.next()){
 					ObservableList<String> row2 = FXCollections.observableArrayList();
@@ -221,6 +232,7 @@ public class Model {
 				}
 
 			}
+			System.out.println(data2);
 			tableView.setItems(data2);
 
 		} catch (Exception ex){
@@ -298,7 +310,6 @@ public class Model {
 
 		});
 		tableView.getColumns().add(column);
-		tableView.setEditable(true);
 
     	return tableView;
 	}

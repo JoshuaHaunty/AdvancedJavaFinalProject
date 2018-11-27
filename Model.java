@@ -173,7 +173,7 @@ public class Model {
 			for (int i = 0; i < rs.getMetaData().getColumnCount() - 1; i++) {
 				final int j = i;
 				TableColumn column = new TableColumn(rs.getMetaData().getColumnName(i + 1));
-				 column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
+				column.setCellValueFactory((Callback<CellDataFeatures<ObservableList, String>,
 						ObservableValue<String>>) param -> new SimpleStringProperty(param.getValue().get(j).toString()));
 				tableView.getColumns().addAll(column);
 			}

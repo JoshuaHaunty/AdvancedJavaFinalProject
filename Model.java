@@ -4,6 +4,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -28,8 +29,6 @@ public class Model {
 	private String user = "root";
 	private String pswd = "";
 	private String url = "jdbc:mysql://localhost/AdvancedDBFinal";
-	private ObservableList<ObservableList> data;
-	private ObservableList<ObservableList> data2;
 	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList(
 			"Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
 	);
@@ -164,6 +163,7 @@ public class Model {
 
 	// Display the data in the table by getting each tuple in the database. Code built off of Narayan G. Maharjan's version.
 	public TableView displayData(Connection connection, TableView tableView) throws Exception {
+		ObservableList<ObservableList> data;
 		tableView.getItems().clear();
 		tableView.getColumns().clear();
 
@@ -181,6 +181,16 @@ public class Model {
 				tableView.getColumns().addAll(column);
 			}
 
+			addDataToObservableArrayList(rs, data);
+			tableView.setItems(data);
+		} catch (Exception ex) {
+			System.err.print(ex);
+		}
+		return tableView;
+	}
+
+	public ObservableList<ObservableList> addDataToObservableArrayList(ResultSet rs, ObservableList<ObservableList> data) {
+		try {
 			while (rs.next()) {
 				ObservableList<String> row = FXCollections.observableArrayList();
 				for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
@@ -188,12 +198,10 @@ public class Model {
 				}
 				data.add(row);
 			}
-
-			tableView.setItems(data);
-		} catch (Exception ex) {
-			System.err.print(ex);
+		} catch (Exception ex){
+			System.err.println(ex);
 		}
-		return tableView;
+		return data;
 	}
 
 	public ObservableList<String> getCategories(Connection connection){
@@ -217,7 +225,9 @@ public class Model {
 		return categoriesInDatabase;
 	}
 
+
 	public TableView displayCategoryData(Connection connection, TableView tableView, ObservableList<String> categories) throws Exception {
+		ObservableList<ObservableList> data;
 		tableView.getItems().clear();
 		tableView.getColumns().clear();
 		String SQLCategory =
@@ -227,7 +237,7 @@ public class Model {
 					"SUM(AMOUNT) AS 'Total' " +
 				"FROM finalproject " +
 				"WHERE Category = ?";
-		data2 = FXCollections.observableArrayList();
+		data = FXCollections.observableArrayList();
 		int size = categories.size();
 		if (size != 0) {
 			try {
@@ -252,17 +262,11 @@ public class Model {
 						}
 					}
 
-					while (rs.next()) {
-						ObservableList<String> row2 = FXCollections.observableArrayList();
-						for (int j = 1; j <= rs.getMetaData().getColumnCount(); j++) {
-							row2.add(rs.getString(j));
-						}
-						data2.add(row2);
-					}
+					addDataToObservableArrayList(rs, data);
 
 				}
-				System.out.println(data2);
-				tableView.setItems(data2);
+				System.out.println(data);
+				tableView.setItems(data);
 
 			} catch (Exception ex) {
 				System.err.print(ex);

@@ -8,6 +8,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.cell.ComboBoxTableCell;
@@ -154,6 +156,7 @@ public class Model {
 		System.out.println("Attempting to send queries...");
 		// Create a string array to hold row data. This will be placed inside the List<String[]>
 		String[] entry;
+		int count = 0;
 
 		// Create a prepared statement and a query to be used
 		PreparedStatement statement;
@@ -162,58 +165,62 @@ public class Model {
 		// Iterate through each item in the list
 		for (int i = 1; i < transactionList.size(); i++) {
 			entry = transactionList.get(i);
-			String temp = "DEBIT PURCHASE";
-			String temp2 = "-";
-			String temp3 = "VISA";
-			String temp4 = " ";
+			if (entry[4].contains("-")) {
+				String temp = "DEBIT PURCHASE";
+				String temp2 = "-";
+				String temp3 = "VISA";
+				String temp4 = " ";
 
-			// Remove repetitive strings from transaction names
-			if (entry[2].length() > 14) {
-				String compareTemp = entry[2].substring(0, 14);
-				// Remove "DEBIT PURCHASE"
-				if (temp.equals(compareTemp)) {
-					entry[2] = entry[2].substring(15);
+				// Remove repetitive strings from transaction names
+				if (entry[2].length() > 14) {
+					String compareTemp = entry[2].substring(0, 14);
+					// Remove "DEBIT PURCHASE"
+					if (temp.equals(compareTemp)) {
+						entry[2] = entry[2].substring(15);
+					}
+
+					// Remove "-"
+					if (temp2.equals(entry[2].substring(0, 1))) {
+						entry[2] = entry[2].substring(1);
+					}
+
+					// Remove "VISA"
+					if (temp3.equals(entry[2].substring(0, 4))) {
+						entry[2] = entry[2].substring(4);
+					}
+
+					// Remove " "
+					if (temp4.equals(entry[2].substring(0, 1))) {
+						entry[2] = entry[2].substring(1);
+					}
 				}
 
-				// Remove "-"
-				if (temp2.equals(entry[2].substring(0, 1))){
-					entry[2] = entry[2].substring(1);
+				// Remove excess zeros from amounts if present
+				for (int j = 0; j < entry[4].length() - 1; j++) {
+					if (entry[4].charAt(j) == '.') {
+						entry[4] = entry[4].substring(0, j + 3);
+					}
+
 				}
 
-				// Remove "VISA"
-				if (temp3.equals(entry[2].substring(0, 4))){
-					entry[2] = entry[2].substring(4);
+				try {
+					// Execute queries on refined transactionList
+					statement = connection.prepareStatement(query);
+					statement.setInt(1, i);
+					statement.setString(2, entry[0]);
+					statement.setString(3, entry[2]);
+					statement.setString(4, entry[4]);
+
+					statement.execute();
+
+				} catch (Exception ex) {
+					System.err.print(ex);
 				}
-
-				// Remove " "
-				if (temp4.equals(entry[2].substring(0, 1))){
-					entry[2] = entry[2].substring(1);
-				}
-			}
-
-			// Remove excess zeros from amounts if present
-			for (int j = 0; j < entry[4].length() - 1; j++){
-				if (entry[4].charAt(j) == '.'){
-					entry[4] = entry[4].substring(0, j + 3);
-				}
-
-			}
-
-			try {
-				// Execute queries on refined transactionList
-				statement = connection.prepareStatement(query);
-				statement.setInt(1, i);
-				statement.setString(2, entry[0]);
-				statement.setString(3, entry[2]);
-				statement.setString(4, entry[4]);
-
-				statement.execute();
-
-			} catch (Exception ex) {
-				System.err.print(ex);
+			} else {
+				count++;
 			}
 		}
-
+		System.out.println(count + " Queries were not sent to the database for containing positive transactions.");
 		System.out.println("Queries Sent");
 	}
 
@@ -429,5 +436,44 @@ public class Model {
 
     	return tableView;
 	}
-}
 
+	public TableColumn addCheckBoxToTableView(TableView tableView, BarChart barChart) {
+		TableColumn graphAmount = new TableColumn("Graph");
+
+		graphAmount.setCellValueFactory(new PropertyValueFactory<>("graph"));
+
+		graphAmount.setCellFactory(col -> {
+			TableCell<String, Boolean> c = new TableCell<>();
+			//CheckBoxTableCell<String, Boolean> checkBoxTableCell = new CheckBoxTableCell<>();
+			CheckBox checkBoxTableCell = new CheckBox();
+			checkBoxTableCell.selectedProperty().addListener((observable, oldValue, newValue) -> {
+				if (checkBoxTableCell.isSelected()){
+					Object rowObject = tableView.getItems().get(c.getIndex());
+					String row = rowObject.toString();
+					int start = row.lastIndexOf(",");
+					int end = row.indexOf(",");
+					String number = "";
+					String name = "";
+
+					for (int i = 1; i < end; i++){
+						name += row.charAt(i);
+					}
+
+					for (int i = start + 3; i < row.length() - 1; i++){
+						number += row.charAt(i);
+					}
+					XYChart.Series series1 = new XYChart.Series();
+					series1.setName(name);
+					series1.getData().add(new XYChart.Data(name, Double.parseDouble(number)));
+					barChart.getData().add(series1);
+				} else {
+
+				}
+			});
+			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(checkBoxTableCell));
+			return c;
+		});
+
+		return graphAmount;
+	}
+}

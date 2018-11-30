@@ -1,8 +1,3 @@
-import javafx.application.Platform;
-import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.application.Application;
@@ -10,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -28,7 +24,7 @@ public class HomeUI extends Application {
 	private Button transactionButton = new Button("Transactions");
 	private final CategoryAxis categoryAxis = new CategoryAxis();
 	private final NumberAxis numberAxis = new NumberAxis();
-	private BarChart<String, Number> barChart = new BarChart<>(categoryAxis, numberAxis);
+	private final BarChart barChart = new BarChart(categoryAxis, numberAxis);
 	private Label newCategoryLabel = new Label("New Category:   ");
 	private Label removeCategoryLabel = new Label("      Remove By Name:   ");
 	private TextField newCategoryTextField = new TextField();
@@ -112,11 +108,12 @@ public class HomeUI extends Application {
 		hBox.setPrefHeight(660.0);
 
 		// BarChart to display categories
+		categoryAxis.setLabel("Category");
+		numberAxis.setLabel("Amount");
 		categoryAxis.setSide(BOTTOM);
 		numberAxis.setSide(LEFT);
 		barChart.setPrefHeight(460.0);
 		barChart.setPrefWidth(561.0);
-		//barChart.setPadding(new Insets(150, 100, 100,50 ));
 		barChart.setStyle("-fx-background-color: #63adf2");
 		barChart.setTitle("Category Comparison Graph");
 
@@ -124,6 +121,7 @@ public class HomeUI extends Application {
 		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions"));
 		categoryTable.setPrefHeight(496.0);
 		categoryTable.setPrefWidth(497.0);
+		categoryTable.setEditable(true);
 
 		hBox.getChildren().addAll(barChart, categoryTable);
 		hBox.setMargin(barChart, new Insets(150, 100, 100,50 ));
@@ -134,7 +132,6 @@ public class HomeUI extends Application {
 			model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable), model.getComboBoxValues(model.ConnectToDb())));
 			comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues(model.ConnectToDb()));
 		}
-
 
 		// Add components to anchorPane
 		anchorPane.getChildren().addAll(vBox, transactionTable, hBox, addAndRemoveVBox);
@@ -160,6 +157,7 @@ public class HomeUI extends Application {
 			try {
 				if (model.hasData(model.ConnectToDb()) == true && hBox.isVisible() == false) {
 					model.autoResizeColumns(model.displayCategoryData(model.ConnectToDb(), categoryTable, model.getCategories(model.ConnectToDb())));
+					categoryTable.getColumns().add(model.addCheckBoxToTableView(categoryTable, barChart));
 				}
 				transactionTable.setVisible(false);
 				hBox.setVisible(true);

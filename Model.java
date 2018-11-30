@@ -1,4 +1,5 @@
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -29,7 +30,7 @@ public class Model {
 	private String user = "root";
 	private String pswd = "";
 	private String url = "jdbc:mysql://localhost/AdvancedDBFinal";
-	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList();
+	private ObservableList<String> localComboBoxValues = FXCollections.observableArrayList();
 
 	public void ImportFile() throws Exception {
 		FileChooser csvFileChooser = new FileChooser();
@@ -71,25 +72,26 @@ public class Model {
 		return connection;
 	}
 
-	public void getComboBoxValues(Connection connection){
+	public ObservableList<String> getComboBoxValues(Connection connection){
+		ObservableList<String> comboBoxValues = FXCollections.observableArrayList();
 		System.out.println("Attempting to get combobox categories...");
-		int size = comboBoxValues.size();
 
-		PreparedStatement statement;
 		String query = "SELECT * FROM categorylist";
-
 		try {
 			ResultSet rs = connection.createStatement().executeQuery(query);
-			comboBoxValues.remove(0, size);
 
 			while (rs.next()){
 				comboBoxValues.add(rs.getString(1));
+				if (!localComboBoxValues.contains(rs.getObject(1))){
+					localComboBoxValues.add(rs.getString(1));
+				}
 			}
 
 			System.out.println("Received comboBox values from database: " + comboBoxValues);
 		} catch (Exception ex){
 			System.err.print(ex);
 		}
+		return comboBoxValues;
 	}
 
 	public void addCategory(Connection connection, TextField textField){
@@ -99,15 +101,25 @@ public class Model {
 		String query = "INSERT INTO categorylist (Category) VALUES (?)";
 
 		try {
-			statement = connection.prepareStatement(query);
-			statement.setString(1, textField.getText());
-			statement.execute();
+			if (!textField.getText().isEmpty()) {
+				statement = connection.prepareStatement(query);
+				statement.setString(1, textField.getText());
+				statement.execute();
 
-			System.out.println("New category '" + textField.getText() + "' added to database");
-			textField.setText("");
+				if (!localComboBoxValues.contains(textField.getText())) {
+					localComboBoxValues.add(textField.getText());
+				}
+				System.out.println("New category '" + textField.getText() + "' added to database");
+				textField.setText("");
+			} else {
+				Alert alert = new Alert(Alert.AlertType.WARNING, "You cannot add a blank category.", ButtonType.OK);
+				alert.showAndWait();
+				System.out.println("Failed to send combobox category. The category was empty");
+			}
 		} catch (SQLIntegrityConstraintViolationException exz){
 			Alert alert = new Alert(Alert.AlertType.WARNING, "Duplicate category found.\nPlease enter a different category.", ButtonType.OK);
 			alert.showAndWait();
+			System.out.println("Failed to send combobox category. The category was a duplicate");
 		} catch (Exception ex){
 			System.err.print(ex);
 		}
@@ -120,10 +132,17 @@ public class Model {
 		String query = "DELETE FROM categorylist WHERE Category = ?";
 
 		try {
-			statement = connection.prepareStatement(query);
-			if (comboBoxValues.indexOf(comboBox.getValue().toString()) != -1){
+			if (!comboBox.getValue().equals("Select...")) {
+				statement = connection.prepareStatement(query);
 				statement.setString(1, comboBox.getValue().toString());
 				statement.execute();
+					if (localComboBoxValues.contains(comboBox.getValue().toString())) {
+						localComboBoxValues.remove(comboBox.getValue().toString());
+					}
+			} else {
+				Alert alert = new Alert(Alert.AlertType.WARNING, "Please select a category from the drop down.", ButtonType.OK);
+				alert.showAndWait();
+				System.out.println("Failed to send combobox category. The category was a duplicate");
 			}
 		} catch (Exception ex){
 			System.err.println(ex);
@@ -337,7 +356,7 @@ public class Model {
 		table.getColumns().stream().forEach((column) -> {
 			Text t = new Text(column.getText());
 			double max = t.getLayoutBounds().getWidth();
-			for (int i = 0; i < table.getItems().size(); i++){
+			for (int i = 0; i < table.getItems().size() - 1; i++){
 				if (column.getCellData(i) != null){
 					t = new Text(column.getCellData(i).toString());
 					double calcwidth = t.getLayoutBounds().getWidth();
@@ -355,24 +374,21 @@ public class Model {
 		return table;
 	}
 
-	public TableView addRadioButtonToTableView(TableView tableView){
-		TableCell<RadioButton, RadioButton> c = new TableCell<>();
+	public TableView addCheckBoxToCategoryTableView(TableView tableView){
+		TableColumn<StringProperty, BooleanProperty> column = new TableColumn<>("Graph");
+		column.setCellValueFactory(new PropertyValueFactory<>("graph"));
 
 		return tableView;
 	}
 
-	public ObservableList<String> returnComboBoxValues(){
-		return comboBoxValues;
-	}
-
-    public TableView addComboBoxToTableView(TableView tableView){
-
+    public TableView addComboBoxToTableView(TableView tableView, ObservableList<String> comboBoxValues) throws Exception {
 		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
 		column.setCellValueFactory(new PropertyValueFactory<>("category"));
 
 		column.setCellFactory(col -> {
 			TableCell<String, StringProperty> c = new TableCell<>();
-			final ComboBox<String> comboBox = new ComboBox<>(comboBoxValues);
+			ComboBox<String> comboBox = new ComboBox<>(localComboBoxValues);
+			comboBox.setPrefWidth(100);
 			comboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
                 if (comboBox.getValue() != "Select...") {
 					Object rowObject = tableView.getItems().get(c.getIndex());

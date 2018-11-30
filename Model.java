@@ -29,9 +29,7 @@ public class Model {
 	private String user = "root";
 	private String pswd = "";
 	private String url = "jdbc:mysql://localhost/AdvancedDBFinal";
-	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList(
-			"Rent", "Utilities", "Groceries", "Eating Out", "Gifts"
-	);
+	private ObservableList<String> comboBoxValues = FXCollections.observableArrayList();
 
 	public void ImportFile() throws Exception {
 		FileChooser csvFileChooser = new FileChooser();
@@ -71,6 +69,63 @@ public class Model {
 		System.out.println("Connection Successful");
 
 		return connection;
+	}
+
+	public void getComboBoxValues(Connection connection){
+		System.out.println("Attempting to get combobox categories...");
+		int size = comboBoxValues.size();
+
+		PreparedStatement statement;
+		String query = "SELECT * FROM categorylist";
+
+		try {
+			ResultSet rs = connection.createStatement().executeQuery(query);
+			comboBoxValues.remove(0, size);
+
+			while (rs.next()){
+				comboBoxValues.add(rs.getString(1));
+			}
+
+			System.out.println("Received comboBox values from database: " + comboBoxValues);
+		} catch (Exception ex){
+			System.err.print(ex);
+		}
+	}
+
+	public void insertNewCategory(Connection connection, TextField textField){
+		System.out.println("Attempting to send new combobox category...");
+
+		PreparedStatement statement;
+		String query = "INSERT INTO categorylist (Category) VALUES (?)";
+
+		try {
+			statement = connection.prepareStatement(query);
+			statement.setString(1, textField.getText());
+			statement.execute();
+
+			System.out.println("New category '" + textField.getText() + "' added to database");
+			textField.setText("");
+		} catch (Exception ex){
+			System.err.print(ex);
+		}
+	}
+
+	public void removeCategory(Connection connection, TextField textField){
+		System.out.println("Attempting to remove category...");
+
+		PreparedStatement statement;
+		String query = "DELETE FROM categorylist WHERE Category = ?";
+
+		try {
+			statement = connection.prepareStatement(query);
+			if (comboBoxValues.indexOf(textField.getText()) != -1){
+				statement.setString(1, textField.getText());
+				statement.execute();
+				textField.setText("");
+			}
+		} catch (Exception ex){
+			System.err.println(ex);
+		}
 	}
 
 	public void importData(Connection connection) {
@@ -146,7 +201,6 @@ public class Model {
 		boolean returnStatement = false;
 
 		try {
-			connection = DriverManager.getConnection(url, user, pswd);
 			ResultSet rs = connection.createStatement().executeQuery(SQL);
 
 			if (rs.next() == false){

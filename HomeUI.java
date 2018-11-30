@@ -14,6 +14,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.lang.reflect.Type;
+import java.util.concurrent.ExecutionException;
 
 import static javafx.geometry.Side.BOTTOM;
 import static javafx.geometry.Side.LEFT;
@@ -24,10 +25,15 @@ public class HomeUI extends Application {
 	private Button importButton = new Button("Import");
 	private Button trendButton = new Button("Trends");
 	private Button transactionButton = new Button("Transactions");
-	private TextField newCategoryTextField = new TextField("Category: ");
 	private final CategoryAxis categoryAxis = new CategoryAxis();
 	private final NumberAxis numberAxis = new NumberAxis();
 	private BarChart<String, Number> barChart = new BarChart<>(categoryAxis, numberAxis);
+	private Label newCategoryLabel = new Label("      New Category:   ");
+	private Label removeCategoryLabel = new Label("Remove By Name:   ");
+	private TextField newCategoryTextField = new TextField();
+	private TextField removeCategoryTextField = new TextField();
+	private Button newCategoryButton = new Button(" Submit ");
+	private Button removeCategoryButton = new Button("Remove ");
 
 	public static void main(String[] args){
 		launch(args);
@@ -47,9 +53,9 @@ public class HomeUI extends Application {
 		// VBox to hold all buttons
 		VBox vBox = new VBox();
 		vBox.setPrefWidth(195);
-		vBox.setPrefHeight(668);
-		vBox.prefHeight(668);
-		vBox.prefWidth(203);
+		vBox.setPrefHeight(698);
+		vBox.prefHeight(668.0);
+		vBox.prefWidth(203.0);
 		vBox.setStyle("-fx-background-color: #82a0bc");
 		vBox.setLayoutX(0);
 		vBox.setLayoutY(0);
@@ -75,12 +81,24 @@ public class HomeUI extends Application {
 		vBox.getChildren().addAll(importButton, trendButton, transactionButton);
 
 		// TableView settings
-		transactionTable.setPrefHeight(568);
+		transactionTable.setPrefHeight(508);
 		transactionTable.setPrefWidth(800);
 		transactionTable.setLayoutX(247);
-		transactionTable.setLayoutY(50);
+		transactionTable.setLayoutY(30);
 		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
 		transactionTable.setEditable(false);
+
+		// Add and remove category UI
+		HBox newCategoryHBox = new HBox();
+		newCategoryHBox.getChildren().addAll(newCategoryLabel, newCategoryTextField, newCategoryButton);
+		HBox removeCategoryHBox = new HBox();
+		removeCategoryHBox.getChildren().addAll(removeCategoryLabel, removeCategoryTextField, removeCategoryButton);
+		VBox addAndRemoveVBox = new VBox();
+		addAndRemoveVBox.getChildren().addAll(newCategoryHBox, removeCategoryHBox);
+		addAndRemoveVBox.setLayoutX(447);
+		addAndRemoveVBox.setLayoutY(570);
+		addAndRemoveVBox.setMargin(newCategoryHBox, new Insets(10, 10, 10, 10));
+		addAndRemoveVBox.setMargin(removeCategoryHBox, new Insets(10, 10, 10, 10));
 
 
 		// HBox to hold graph and category tableview
@@ -113,16 +131,17 @@ public class HomeUI extends Application {
 		if (model.hasData(model.ConnectToDb()) == true) {
 			model.autoResizeColumns(model.addComboBoxToTableView(
 					model.displayData(model.ConnectToDb(), transactionTable)));
+			model.getComboBoxValues(model.ConnectToDb());
 		}
 
 
 		// Add components to anchorPane
-		anchorPane.getChildren().addAll(vBox, transactionTable, hBox);
+		anchorPane.getChildren().addAll(vBox, transactionTable, hBox, addAndRemoveVBox);
 		hBox.setVisible(false);
 
 		// Add anchorPane to scene and show it
 		primaryStage.setTitle(" Budget Tracker");
-		primaryStage.setScene(new Scene(anchorPane, 1212.0, 648.0));
+		primaryStage.setScene(new Scene(anchorPane, 1212.0, 688.0));
 		primaryStage.show();
 		primaryStage.setResizable(false);
 
@@ -143,6 +162,7 @@ public class HomeUI extends Application {
 				}
 				transactionTable.setVisible(false);
 				hBox.setVisible(true);
+				addAndRemoveVBox.setVisible(false);
 			} catch (Exception ex){
 				System.err.print(ex);
 			}
@@ -155,10 +175,29 @@ public class HomeUI extends Application {
 				}
 				hBox.setVisible(false);
 				transactionTable.setVisible(true);
+				addAndRemoveVBox.setVisible(true);
 			} catch (Exception ex){
 				System.err.print(ex);
 			}
 
+		});
+
+		newCategoryButton.setOnMouseReleased(e ->{
+			try {
+				model.insertNewCategory(model.ConnectToDb(), newCategoryTextField);
+				model.getComboBoxValues(model.ConnectToDb());
+			} catch (Exception ex){
+				System.err.print(ex);
+			}
+		});
+
+		removeCategoryButton.setOnMouseReleased(e ->{
+			try {
+				model.removeCategory(model.ConnectToDb(), removeCategoryTextField);
+				model.getComboBoxValues(model.ConnectToDb());
+			} catch (Exception ex){
+				System.err.print(ex);
+			}
 		});
 	}
 }

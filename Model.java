@@ -92,7 +92,7 @@ public class Model {
 		}
 	}
 
-	public void insertNewCategory(Connection connection, TextField textField){
+	public void addCategory(Connection connection, TextField textField){
 		System.out.println("Attempting to send new combobox category...");
 
 		PreparedStatement statement;
@@ -105,12 +105,15 @@ public class Model {
 
 			System.out.println("New category '" + textField.getText() + "' added to database");
 			textField.setText("");
+		} catch (SQLIntegrityConstraintViolationException exz){
+			Alert alert = new Alert(Alert.AlertType.WARNING, "Duplicate category found.\nPlease enter a different category.", ButtonType.OK);
+			alert.showAndWait();
 		} catch (Exception ex){
 			System.err.print(ex);
 		}
 	}
 
-	public void removeCategory(Connection connection, TextField textField){
+	public void removeCategory(Connection connection, ComboBox comboBox){
 		System.out.println("Attempting to remove category...");
 
 		PreparedStatement statement;
@@ -118,10 +121,9 @@ public class Model {
 
 		try {
 			statement = connection.prepareStatement(query);
-			if (comboBoxValues.indexOf(textField.getText()) != -1){
-				statement.setString(1, textField.getText());
+			if (comboBoxValues.indexOf(comboBox.getValue().toString()) != -1){
+				statement.setString(1, comboBox.getValue().toString());
 				statement.execute();
-				textField.setText("");
 			}
 		} catch (Exception ex){
 			System.err.println(ex);
@@ -357,6 +359,10 @@ public class Model {
 		TableCell<RadioButton, RadioButton> c = new TableCell<>();
 
 		return tableView;
+	}
+
+	public ObservableList<String> returnComboBoxValues(){
+		return comboBoxValues;
 	}
 
     public TableView addComboBoxToTableView(TableView tableView){

@@ -28,12 +28,13 @@ public class HomeUI extends Application {
 	private final CategoryAxis categoryAxis = new CategoryAxis();
 	private final NumberAxis numberAxis = new NumberAxis();
 	private BarChart<String, Number> barChart = new BarChart<>(categoryAxis, numberAxis);
-	private Label newCategoryLabel = new Label("      New Category:   ");
-	private Label removeCategoryLabel = new Label("Remove By Name:   ");
+	private Label newCategoryLabel = new Label("New Category:   ");
+	private Label removeCategoryLabel = new Label("      Remove By Name:   ");
 	private TextField newCategoryTextField = new TextField();
 	private TextField removeCategoryTextField = new TextField();
 	private Button newCategoryButton = new Button(" Submit ");
 	private Button removeCategoryButton = new Button("Remove ");
+	private ComboBox<String> comboBox = new ComboBox();
 
 	public static void main(String[] args){
 		launch(args);
@@ -88,18 +89,21 @@ public class HomeUI extends Application {
 		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
 		transactionTable.setEditable(false);
 
+		// Settings for comboBox
+		comboBox.setMaxWidth(90);
+		comboBox.setValue("Select...");
+
 		// Add and remove category UI
 		HBox newCategoryHBox = new HBox();
 		newCategoryHBox.getChildren().addAll(newCategoryLabel, newCategoryTextField, newCategoryButton);
 		HBox removeCategoryHBox = new HBox();
-		removeCategoryHBox.getChildren().addAll(removeCategoryLabel, removeCategoryTextField, removeCategoryButton);
+		removeCategoryHBox.getChildren().addAll(removeCategoryLabel, comboBox, removeCategoryButton);
 		VBox addAndRemoveVBox = new VBox();
 		addAndRemoveVBox.getChildren().addAll(newCategoryHBox, removeCategoryHBox);
 		addAndRemoveVBox.setLayoutX(447);
 		addAndRemoveVBox.setLayoutY(570);
 		addAndRemoveVBox.setMargin(newCategoryHBox, new Insets(10, 10, 10, 10));
 		addAndRemoveVBox.setMargin(removeCategoryHBox, new Insets(10, 10, 10, 10));
-
 
 		// HBox to hold graph and category tableview
 		HBox hBox = new HBox();
@@ -121,8 +125,6 @@ public class HomeUI extends Application {
 		categoryTable.setPrefHeight(496.0);
 		categoryTable.setPrefWidth(497.0);
 
-		//categoryTable.setPadding(new Insets(75.0, 75.0, 75.0, 0));
-
 		hBox.getChildren().addAll(barChart, categoryTable);
 		hBox.setMargin(barChart, new Insets(150, 100, 100,50 ));
 		hBox.setMargin(categoryTable, new Insets(75.0, 50.0, 75.0, 0));
@@ -132,6 +134,7 @@ public class HomeUI extends Application {
 			model.autoResizeColumns(model.addComboBoxToTableView(
 					model.displayData(model.ConnectToDb(), transactionTable)));
 			model.getComboBoxValues(model.ConnectToDb());
+			comboBox.getItems().addAll(model.returnComboBoxValues());
 		}
 
 
@@ -184,8 +187,10 @@ public class HomeUI extends Application {
 
 		newCategoryButton.setOnMouseReleased(e ->{
 			try {
-				model.insertNewCategory(model.ConnectToDb(), newCategoryTextField);
+				model.addCategory(model.ConnectToDb(), newCategoryTextField);
 				model.getComboBoxValues(model.ConnectToDb());
+				comboBox.getItems().removeAll(comboBox.getItems());
+				comboBox.getItems().addAll(model.returnComboBoxValues());
 			} catch (Exception ex){
 				System.err.print(ex);
 			}
@@ -193,8 +198,11 @@ public class HomeUI extends Application {
 
 		removeCategoryButton.setOnMouseReleased(e ->{
 			try {
-				model.removeCategory(model.ConnectToDb(), removeCategoryTextField);
+				model.removeCategory(model.ConnectToDb(), comboBox);
 				model.getComboBoxValues(model.ConnectToDb());
+				comboBox.getItems().removeAll(comboBox.getItems());
+				comboBox.getItems().addAll(model.returnComboBoxValues());
+				comboBox.setValue("Select...");
 			} catch (Exception ex){
 				System.err.print(ex);
 			}

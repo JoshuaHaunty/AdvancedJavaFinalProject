@@ -135,8 +135,8 @@ public class HomeUI extends Application {
 
 		// If there is data in the database, display it
 		if (model.hasData(model.ConnectToDb()) == true) {
-			model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable), model.getComboBoxValues(model.ConnectToDb())));
-			comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues(model.ConnectToDb()));
+			model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
+			comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues());
 		}
 
 		// Add components to anchorPane
@@ -153,7 +153,7 @@ public class HomeUI extends Application {
 			try {
 				model.ImportFile();
 				model.importData(model.ConnectToDb());
-				model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable), model.getComboBoxValues(model.ConnectToDb())));
+				model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
 			} catch (Exception ex) {
 				System.err.print(ex);
 			}
@@ -177,7 +177,7 @@ public class HomeUI extends Application {
 		transactionButton.setOnMouseReleased(e -> {
 			try {
 				if (model.hasData(model.ConnectToDb()) == true && transactionTable.isVisible() == false) {
-					model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable), model.getComboBoxValues(model.ConnectToDb())));
+					model.autoResizeColumns(model.addComboBoxToTableView(model.displayData(model.ConnectToDb(), transactionTable)));
 				}
 				hBox.setVisible(false);
 				transactionTable.setVisible(true);
@@ -192,7 +192,7 @@ public class HomeUI extends Application {
 			try {
 				model.addCategory(model.ConnectToDb(), newCategoryTextField);
 				comboBoxDeleteCategory.getItems().removeAll(comboBoxDeleteCategory.getItems());
-				comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues(model.ConnectToDb()));
+				comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues());
 			} catch (Exception ex){
 				System.err.print(ex);
 			}
@@ -201,9 +201,9 @@ public class HomeUI extends Application {
 		removeCategoryButton.setOnMouseReleased(e ->{
 			try {
 				model.removeCategory(model.ConnectToDb(), comboBoxDeleteCategory);
-				model.getComboBoxValues(model.ConnectToDb());
+				model.getComboBoxValues();
 				comboBoxDeleteCategory.getItems().removeAll(comboBoxDeleteCategory.getItems());
-				comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues(model.ConnectToDb()));
+				comboBoxDeleteCategory.getItems().addAll(model.getComboBoxValues());
 				comboBoxDeleteCategory.setValue("Select...");
 			} catch (Exception ex){
 				System.err.print(ex);

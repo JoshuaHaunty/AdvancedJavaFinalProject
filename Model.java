@@ -59,10 +59,7 @@ public class Model {
 			entry[2] = entry[2].replace("\"", "");
 			entry[4] = entry[4].replace("\"", "");
 			transactionList.add(entry);
-			//System.out.println("Date: " + entry[0] + "   Memo: " + entry[3] + "   Amount: " + entry[4]);
 		}
-
-		ConnectToDb();
 	}
 
 	public Connection ConnectToDb() throws Exception {
@@ -75,12 +72,13 @@ public class Model {
 		return connection;
 	}
 
-	public ObservableList<String> getComboBoxValues(Connection connection){
+	public ObservableList<String> getComboBoxValues(){
 		ObservableList<String> comboBoxValues = FXCollections.observableArrayList();
 		System.out.println("Attempting to get combobox categories...");
 
 		String query = "SELECT * FROM categorylist";
 		try {
+			Connection connection = ConnectToDb();
 			ResultSet rs = connection.createStatement().executeQuery(query);
 
 			while (rs.next()){
@@ -139,9 +137,10 @@ public class Model {
 				statement = connection.prepareStatement(query);
 				statement.setString(1, comboBox.getValue().toString());
 				statement.execute();
-					if (localComboBoxValues.contains(comboBox.getValue().toString())) {
-						localComboBoxValues.remove(comboBox.getValue().toString());
-					}
+				if (localComboBoxValues.contains(comboBox.getValue().toString())) {
+					localComboBoxValues.remove(comboBox.getValue().toString());
+				}
+
 			} else {
 				Alert alert = new Alert(Alert.AlertType.WARNING, "Please select a category from the drop down.", ButtonType.OK);
 				alert.showAndWait();
@@ -161,7 +160,7 @@ public class Model {
 
 		// Create a prepared statement and a query to be used
 		PreparedStatement statement;
-		String query = "INSERT INTO advanceddbfinal.finalproject (ID, Date, Name, Amount) VALUES (?, ?, ?, ?)";
+		String query = "INSERT INTO advanceddbfinal.finalproject (Date, Name, Amount) VALUES (?, ?, ?) ";
 
 		// Iterate through each item in the list
 		for (int i = 1; i < transactionList.size(); i++) {
@@ -207,10 +206,9 @@ public class Model {
 				try {
 					// Execute queries on refined transactionList
 					statement = connection.prepareStatement(query);
-					statement.setInt(1, i);
-					statement.setString(2, entry[0]);
-					statement.setString(3, entry[2]);
-					statement.setString(4, entry[4]);
+					statement.setString(1, entry[0]);
+					statement.setString(2, entry[2]);
+					statement.setString(3, entry[4]);
 
 					statement.execute();
 
@@ -373,23 +371,32 @@ public class Model {
 					}
 				}
 			}
-			if (column.getText().equals("Category")){
+
+			if (column.getText().equals("Category")) {
 				column.setPrefWidth(max + 60.0d);
 			} else {
 				column.setPrefWidth(max + 30.0d);
 			}
+
 		});
+
+		ObservableList columns;
+		columns = table.getColumns();
+		System.out.println(columns);
+		int width = 0;
+		for (int i = 0; i < columns.size(); i++) {
+			if (!table.getColumns().get(i).getText().equals("Name")) {
+				width += table.getColumns().get(i).getWidth();
+			}
+			if (i == columns.size() - 1 && table.getColumns().get(2).getText().equals("Name")) {
+				table.getColumns().get(2).setPrefWidth(table.getPrefWidth() - width - 20.0d);
+			}
+		}
+
 		return table;
 	}
 
-	public TableView addCheckBoxToCategoryTableView(TableView tableView){
-		TableColumn<StringProperty, BooleanProperty> column = new TableColumn<>("Graph");
-		column.setCellValueFactory(new PropertyValueFactory<>("graph"));
-
-		return tableView;
-	}
-
-    public TableView addComboBoxToTableView(TableView tableView, ObservableList<String> comboBoxValues) throws Exception {
+    public TableView addComboBoxToTableView(TableView tableView) throws Exception {
 		TableColumn<String, StringProperty> column = new TableColumn<>("Category");
 		column.setCellValueFactory(new PropertyValueFactory<>("category"));
 

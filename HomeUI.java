@@ -80,7 +80,7 @@ public class HomeUI extends Application {
 		// TableView settings
 		transactionTable.setPrefHeight(508);
 		transactionTable.setPrefWidth(800);
-		transactionTable.setLayoutX(247);
+		transactionTable.setLayoutX(310);
 		transactionTable.setLayoutY(30);
 		transactionTable.setPlaceholder(new Label("Please import a bank statement to view transactions."));
 		//transactionTable.setEditable(false);
@@ -89,6 +89,10 @@ public class HomeUI extends Application {
 		comboBoxDeleteCategory.setMaxWidth(90);
 		comboBoxDeleteCategory.setValue("Select...");
 
+		// Style newcategory table and removecategory table
+		newCategoryLabel.setStyle("-fx-text-fill: white;");
+		removeCategoryLabel.setStyle("-fx-text-fill: white;");
+
 		// Add and remove category UI
 		HBox newCategoryHBox = new HBox();
 		newCategoryHBox.getChildren().addAll(newCategoryLabel, newCategoryTextField, newCategoryButton);
@@ -96,7 +100,7 @@ public class HomeUI extends Application {
 		removeCategoryHBox.getChildren().addAll(removeCategoryLabel, comboBoxDeleteCategory, removeCategoryButton);
 		VBox addAndRemoveVBox = new VBox();
 		addAndRemoveVBox.getChildren().addAll(newCategoryHBox, removeCategoryHBox);
-		addAndRemoveVBox.setLayoutX(447);
+		addAndRemoveVBox.setLayoutX(497);
 		addAndRemoveVBox.setLayoutY(570);
 		addAndRemoveVBox.setMargin(newCategoryHBox, new Insets(10, 10, 10, 10));
 		addAndRemoveVBox.setMargin(removeCategoryHBox, new Insets(10, 10, 10, 10));
@@ -120,12 +124,14 @@ public class HomeUI extends Application {
 		// TableView for displaying categories and the totals
 		categoryTable.setPlaceholder(new Label("Please import and/or categorize transactions"));
 		categoryTable.setPrefHeight(496.0);
-		categoryTable.setPrefWidth(497.0);
+		categoryTable.setPrefWidth(510.0);
 		categoryTable.setEditable(true);
 
 		hBox.getChildren().addAll(barChart, categoryTable);
 		hBox.setMargin(barChart, new Insets(150, 100, 100,50 ));
 		hBox.setMargin(categoryTable, new Insets(75.0, 50.0, 75.0, 0));
+		hBox.setLayoutX(257);
+		hBox.setLayoutY(30);
 
 		// If there is data in the database, display it
 		if (model.hasData(model.ConnectToDb()) == true) {
@@ -158,6 +164,7 @@ public class HomeUI extends Application {
 				if (model.hasData(model.ConnectToDb()) == true && hBox.isVisible() == false) {
 					model.autoResizeColumns(model.displayCategoryData(model.ConnectToDb(), categoryTable, model.getCategories(model.ConnectToDb())));
 					categoryTable.getColumns().add(model.addCheckBoxToTableView(categoryTable, barChart));
+					barChart.getData().removeAll(model.getData(barChart));
 				}
 				transactionTable.setVisible(false);
 				hBox.setVisible(true);

@@ -7,6 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
@@ -441,39 +442,49 @@ public class Model {
 		TableColumn graphAmount = new TableColumn("Graph");
 
 		graphAmount.setCellValueFactory(new PropertyValueFactory<>("graph"));
-
 		graphAmount.setCellFactory(col -> {
 			TableCell<String, Boolean> c = new TableCell<>();
-			//CheckBoxTableCell<String, Boolean> checkBoxTableCell = new CheckBoxTableCell<>();
 			CheckBox checkBoxTableCell = new CheckBox();
 			checkBoxTableCell.selectedProperty().addListener((observable, oldValue, newValue) -> {
-				if (checkBoxTableCell.isSelected()){
-					Object rowObject = tableView.getItems().get(c.getIndex());
-					String row = rowObject.toString();
-					int start = row.lastIndexOf(",");
-					int end = row.indexOf(",");
-					String number = "";
-					String name = "";
+				Object rowObject = tableView.getItems().get(c.getIndex());
+				String row = rowObject.toString();
 
-					for (int i = 1; i < end; i++){
-						name += row.charAt(i);
-					}
+				int start = row.lastIndexOf(",");
+				int end = row.indexOf(",");
+				String number = "";
+				String name = "";
 
-					for (int i = start + 3; i < row.length() - 1; i++){
-						number += row.charAt(i);
-					}
-					XYChart.Series series1 = new XYChart.Series();
-					series1.setName(name);
-					series1.getData().add(new XYChart.Data(name, Double.parseDouble(number)));
+				for (int i = 1; i < end; i++){
+					name += row.charAt(i);
+				}
+
+				for (int i = start + 3; i < row.length() - 1; i++){
+					number += row.charAt(i);
+				}
+
+
+				XYChart.Series series1 = new XYChart.Series();
+				series1.setName(name);
+				series1.getData().add(new XYChart.Data(name, Double.parseDouble(number)));
+
+				if (newValue){
 					barChart.getData().add(series1);
 				} else {
-
+					barChart.getData().remove(c.getIndex());
+					System.out.println(c.getIndex());
 				}
+
 			});
+			c.setAlignment(Pos.CENTER);
+
 			c.graphicProperty().bind(Bindings.when(c.emptyProperty()).then((Node) null).otherwise(checkBoxTableCell));
 			return c;
 		});
 
 		return graphAmount;
+	}
+
+	public ObservableList getData(BarChart barChart){
+		return barChart.getData();
 	}
 }
